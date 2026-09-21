@@ -28,9 +28,6 @@ def main():
             if os.path.isfile(file_path) and is_file_fully_downloaded(file_path, wait_time=2):
                 sort_files(file_path)
 
-        # Start polling-based monitoring
-        monitor_and_sort(polling_interval=2, download_wait_time=2)
-
 
 # Function to check if the file is fully downloaded
 def is_file_fully_downloaded(file_path, wait_time=2):
@@ -65,35 +62,6 @@ def sort_files(file_path):
     folder_path = os.path.join(my_downloads_path, "Others")
     os.makedirs(folder_path, exist_ok=True)
     shutil.move(file_path, os.path.join(folder_path, file_name))
-
-
-# Function to poll for changes in the directory
-def monitor_and_sort(polling_interval=2, download_wait_time=2):
-    print(f"Monitoring {my_downloads_path}... Press Ctrl+C to stop.")
-    previously_seen = set(os.listdir(my_downloads_path))
-
-    try:
-        while True:
-            time.sleep(polling_interval)
-            current_files = set(os.listdir(my_downloads_path))
-            
-            # Detect newly added files
-            new_files = current_files - previously_seen
-            for file in new_files:
-                file_path = os.path.join(my_downloads_path, file)
-                if os.path.isfile(file_path):
-                    print(f"New file detected: {file}")
-                    if is_file_fully_downloaded(file_path, wait_time=download_wait_time):
-                        sort_files(file_path)
-                    else:
-                        print(f"File {file} is still being downloaded, skipping this cycle.")
-            
-            # Update the state of previously seen files
-            previously_seen = current_files
-
-    except KeyboardInterrupt:
-        print("Stopped monitoring.")
-
 
 if __name__ == "__main__":
     main()
