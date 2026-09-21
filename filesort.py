@@ -1,6 +1,7 @@
 import os
 import shutil
 import time
+from pathlib import Path
 
 # Define the file type folders
 file_type_folders = {
@@ -14,19 +15,16 @@ file_type_folders = {
     "Others": []
 }
 
-# Downloads folder path
-# Add your path MacOs: /Users/YourName/Downloads
-# Add your path Linux: /home/yourname/downloads
-# Add your path Windows Linux WSL: /mnt/c/User/yourname/Downloads
-# Add your path Windows: C:\Users\YourName\Downloads
-my_downloads_path = "" 
+# Download path
+raw = "$HOME/Downloads"  
+my_downloads_path = Path(os.path.expandvars(os.path.expanduser(raw)))
 
 def main():
     # Initial sorting of existing files
-        for file in os.listdir(my_downloads_path):
-            file_path = os.path.join(my_downloads_path, file)
-            if os.path.isfile(file_path) and is_file_fully_downloaded(file_path, wait_time=2):
-                sort_files(file_path)
+    for file in os.listdir(my_downloads_path):
+        file_path = os.path.join(my_downloads_path, file)
+        if os.path.isfile(file_path) and is_file_fully_downloaded(file_path, wait_time=2) and is_file_fully_downloaded:
+            sort_files(file_path)
 
 
 # Function to check if the file is fully downloaded
@@ -62,6 +60,17 @@ def sort_files(file_path):
     folder_path = os.path.join(my_downloads_path, "Others")
     os.makedirs(folder_path, exist_ok=True)
     shutil.move(file_path, os.path.join(folder_path, file_name))
+
+def is_file_being_used(file_path):
+    if not os.path.exists(file_path):
+        return False
+    
+    try:
+        # Attempt to rename the file to itself
+        os.rename(file_path, file_path)
+        return False
+    except OSError:
+        return True 
 
 if __name__ == "__main__":
     main()
