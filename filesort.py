@@ -15,15 +15,19 @@ file_type_folders = {
     "Others": []
 }
 
+PARTIAL_EXTENSIONS = {".crdownload", ".part", ".tmp", ".download"}
+
 # Download path
-raw = "$HOME/Downloads"  
-my_downloads_path = Path(os.path.expandvars(os.path.expanduser(raw)))
+my_downloads_path = Path.home()/"Downloads"
 
 def main():
     # Initial sorting of existing files
     for file in os.listdir(my_downloads_path):
+        if os.path.splitext(file)[1].lower() in PARTIAL_EXTENSIONS:
+            continue
         file_path = os.path.join(my_downloads_path, file)
-        if os.path.isfile(file_path) and is_file_fully_downloaded(file_path, wait_time=2) and is_file_fully_downloaded:
+        if os.path.isfile(file_path) and is_file_fully_downloaded(file_path, wait_time=2):
+
             sort_files(file_path)
 
 
@@ -44,33 +48,57 @@ def is_file_fully_downloaded(file_path, wait_time=2):
 
 # Function to sort files
 def sort_files(file_path):
-    file_name = os.path.basename(file_path)  # Get only the file name
+    # Get only the file name
+    file_name = os.path.basename(file_path)
+    # File extension
     file_extension = os.path.splitext(file_name)[1].lower()
 
     # Check the extension against the dictionary
     for folder, extensions in file_type_folders.items():
         if file_extension in extensions:
             folder_path = os.path.join(my_downloads_path, folder)
-            os.makedirs(folder_path, exist_ok=True)
-            print(f"File: {file_name} to Folder: {folder_path}")
-            shutil.move(file_path, os.path.join(folder_path, file_name))
+            folder_path, file_name = unique_destination(folder_path, file_name)
+            move_file(file_path, folder_path, file_name)
             return
         
     # Move to "Others" if no match
     folder_path = os.path.join(my_downloads_path, "Others")
-    os.makedirs(folder_path, exist_ok=True)
-    shutil.move(file_path, os.path.join(folder_path, file_name))
+    folder_path, file_name = unique_destination(folder_path, file_name)
+    move_file(file_path, folder_path, file_name)
 
-def is_file_being_used(file_path):
-    if not os.path.exists(file_path):
-        return False
-    
+def move_file(file_path, folder_path, file_name):
+    os.makedirs(folder_path, exist_ok=True)
+    dest = os.path.join(folder_path, file_name)
     try:
-        # Attempt to rename the file to itself
-        os.rename(file_path, file_path)
-        return False
-    except OSError:
-        return True 
+        os.rename(file_path, dest)
+        print(f"Moved: {file_name} -> {folder_path}")
+    except PermissionError:
+        print(f"Skipped (in use): {file_name}")
+    except OSError as e:
+        print(f"Skipped ({e}): {file_name}")
+
+
+def unique_destination(folder_path, file):
+
+    # path of file destination
+    full_path = Path(os.path.join(folder_path, file))
+
+    # disect folder path
+    file_name = os.path.splitext(file)[0]
+    file_extension = os.path.splitext(file)[1]
+
+    # Loop until file is successfully renamed
+    name_counter = 1
+    while True:
+        # file destination already exist
+        if full_path.is_file():
+            file = f"{file_name} ({name_counter}){file_extension}"
+            full_path = Path(os.path.join(folder_path, file))
+            name_counter += 1
+        else:
+            break
+
+    return folder_path, file
 
 if __name__ == "__main__":
     main()
