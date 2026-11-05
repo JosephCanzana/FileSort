@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail                # stop on any error
+cd "$(dirname "$0")"             # go to this script's own folder
 
-set -e
-cd "$(dirname "$0")"
-
-# Verify uv to install python
+# Install uv only if missing
 if ! command -v uv > /dev/null 2>&1; then
-  curl -LsSf https://astral.sh/uv/install.sh | sh 
-  export PATH="$HOME/.local/bin:$PATH"
+  curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
-# Install python
-uv tool install --python 3.12 .
-filesort setup
+
+export PATH="$HOME/.local/bin:$PATH"   # now always runs
+
+uv tool install --python 3.12 --force .
+echo "Installed! Open a new terminal and run: filesort"
